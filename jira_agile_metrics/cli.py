@@ -188,6 +188,7 @@ def get_jira_client(connection):
     url = connection["domain"]
     username = connection["username"]
     password = connection["password"]
+    token = connection["token"]
     http_proxy = connection["http_proxy"]
     https_proxy = connection["https_proxy"]
     jira_server_version_check = connection["jira_server_version_check"]
@@ -195,12 +196,6 @@ def get_jira_client(connection):
     jira_client_options = connection["jira_client_options"]
 
     logger.info("Connecting to %s", url)
-
-    if not username:
-        username = input("Username: ")
-
-    if not password:
-        password = getpass.getpass("Password: ")
 
     options = {"server": url}
     proxies = None
@@ -214,12 +209,27 @@ def get_jira_client(connection):
 
     options.update(jira_client_options)
 
-    return JIRA(
-        options,
-        basic_auth=(username, password),
-        proxies=proxies,
-        get_server_info=jira_server_version_check,
-    )
+    if token:
+        return JIRA(
+            options,
+            token_auth=token,
+            proxies=proxies,
+            get_server_info=jira_server_version_check,
+        )
+
+    else:
+        if not username:
+            username = input("Username: ")
+
+        if not password:
+            password = getpass.getpass("Password: ")
+
+        return JIRA(
+            options,
+            basic_auth=(username, password),
+            proxies=proxies,
+            get_server_info=jira_server_version_check,
+        )
 
 
 def get_trello_client(connection, type_mapping):
